@@ -22,6 +22,7 @@ async function run(){
 
         const categoriesCollection = client.db('phonoShopia').collection('categories')
         const usersCollection = client.db('phonoShopia').collection('users')
+        const productsCollection = client.db('phonoShopia').collection('products')
 
 
         app.get('/categories', async(req, res)=> {
@@ -33,8 +34,14 @@ async function run(){
 
         app.post('/users', async(req, res)=>{
             const user = req.body;
-            console.log(user);
+            // console.log(user);
             const result = await usersCollection.insertOne(user);
+            res.send(result);
+        })
+        app.post('/product', async(req, res)=>{
+            const product = req.body;
+            // console.log(product);
+            const result = await productsCollection.insertOne(product);
             res.send(result);
         })
 
