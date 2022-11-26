@@ -19,7 +19,24 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 async function run(){
     try{
-        app.get('/categories')
+
+        const categoriesCollection = client.db('phonoShopia').collection('categories')
+        const usersCollection = client.db('phonoShopia').collection('users')
+
+
+        app.get('/categories', async(req, res)=> {
+            const query = {}
+            const categories = await categoriesCollection.find(query).toArray()
+            res.send(categories)
+        })
+
+
+        app.post('/users', async(req, res)=>{
+            const user = req.body;
+            console.log(user);
+            const result = await usersCollection.insertOne(user);
+            res.send(result);
+        })
 
     }
     finally{
