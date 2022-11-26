@@ -30,6 +30,20 @@ async function run(){
             const categories = await categoriesCollection.find(query).toArray()
             res.send(categories)
         })
+        app.get('/products', async(req, res)=> {
+            const email = req.query.email
+            // console.log(email);
+            const query = {seller: email}
+            const products = await productsCollection.find(query).toArray()
+            res.send(products)
+        })
+        app.get('/category/:name', async(req, res)=> {
+            const name = req.params.name
+            console.log(name);
+            const query = {category : name}
+            const products = await productsCollection.find(query).toArray()
+            res.send(products)
+        })
 
 
         app.post('/users', async(req, res)=>{
