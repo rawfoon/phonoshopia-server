@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port  = process.env.PORT || 5000
 
 require('dotenv').config()
@@ -30,6 +30,13 @@ async function run(){
             const categories = await categoriesCollection.find(query).toArray()
             res.send(categories)
         })
+        app.get('/category/:name', async(req, res)=> {
+            const name = req.params.name
+            // console.log(name);
+            const query = {category : name}
+            const products = await productsCollection.find(query).toArray()
+            res.send(products)
+        })
         app.get('/products', async(req, res)=> {
             const email = req.query.email
             // console.log(email);
@@ -37,12 +44,32 @@ async function run(){
             const products = await productsCollection.find(query).toArray()
             res.send(products)
         })
-        app.get('/category/:name', async(req, res)=> {
-            const name = req.params.name
-            console.log(name);
-            const query = {category : name}
-            const products = await productsCollection.find(query).toArray()
-            res.send(products)
+        app.get('/user', async(req, res)=> {
+            const email = req.query.email
+            // console.log(email);
+            const query = {email}
+            const user = await usersCollection.find(query).toArray()
+            res.send(user)
+        })
+        app.get('/users', async(req, res)=> {
+          
+            const query = {}
+            const users = await usersCollection.find(query).toArray()
+            // console.log(users);
+            res.send(users)
+        })
+        app.get('/user/admin', async(req, res)=> {
+            const email = req.query.email
+            // console.log(email);
+            const query = {email}
+            const user = await usersCollection.find(query).toArray()
+
+           let admin
+            if(user[0].role){
+                 admin = user
+
+            }
+            res.send(admin)
         })
 
 
@@ -57,6 +84,32 @@ async function run(){
             // console.log(product);
             const result = await productsCollection.insertOne(product);
             res.send(result);
+        })
+
+
+
+       
+        app.put('/users/:id', async(req, res)=>{
+            const id = req.params.id
+            const filter = {_id: ObjectId(id)}
+            // console.log(filter);
+            const options = { upsert: true}
+            const updatedDoc = {
+                        $set: {
+                            role: 'admin'
+                        }
+                    }
+                    const result = await usersCollection.updateOne(filter, updatedDoc, options);
+                    // console.log(result);
+                    res.send(result);
+        })
+
+        app.delete('/users/:id', async(req, res)=>{
+            const id = req.params.id
+            console.log(id);
+            const query = {_id: ObjectId(id)}
+            const result = await usersCollection.deleteOne(query)
+            res.send(result)
         })
 
     }
