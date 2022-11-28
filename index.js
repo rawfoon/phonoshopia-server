@@ -47,14 +47,23 @@ async function run(){
         app.get('/allproducts', async(req, res)=> {
             
             const reported = req.query.reported
+            const boosted = req.query.boosted
+            const buyer = req.query.buyer
+
             // console.log(reported);
             
             let query = {}
             if(reported){
                 query = {reported : "true"}
             }
+            if(boosted){
+                query = { boosted: "boosted"}
+            }
+            if(buyer){
+                query= { buyer: buyer}
+            }
             
-            const products = await productsCollection.find(query).toArray()
+            const products = await (await productsCollection.find(query).toArray()).reverse()
             res.send(products)
         })
         app.get('/user', async(req, res)=> {
@@ -127,6 +136,57 @@ async function run(){
                         }
                     }
                     const result = await usersCollection.updateOne(filter, updatedDoc, options);
+                    // console.log(result);
+                    res.send(result);
+        })
+        app.put('/report/:id', async(req, res)=>{
+            const id = req.params.id
+            const filter = {_id: ObjectId(id)}
+            // console.log(filter);
+            const options = { upsert: true}
+            const updatedDoc = {
+                        $set: {
+                            reported: 'true'
+                        }
+                    }
+                    const result = await usersCollection.updateOne(filter, updatedDoc, options);
+                    // console.log(result);
+                    res.send(result);
+        })
+
+        app.put('/book/:id', async(req, res)=>{
+            const id = req.params.id
+            // const 
+            const filter = {_id: ObjectId(id)}
+            const bookedData = req.body
+            // console.log(filter);
+            const options = { upsert: true}
+            const updatedDoc = {
+                        $set: {
+                            booked : true,
+                            buyerPhone: bookedData.buyerPhone,
+                            meetLocation: bookedData.meetLocation,
+                            buyer: bookedData.buyer
+
+
+                        }
+                    }
+                    const result = await productsCollection.updateOne(filter, updatedDoc, options);
+                    // console.log(result);
+                    res.send(result);
+        })
+
+        app.put('/boost/:id', async(req, res)=>{
+            const id = req.params.id
+            const filter = {_id: ObjectId(id)}
+            // console.log(filter);
+            const options = { upsert: true}
+            const updatedDoc = {
+                        $set: {
+                            boosted: "boosted"
+                        }
+                    }
+                    const result = await productsCollection.updateOne(filter, updatedDoc, options);
                     // console.log(result);
                     res.send(result);
         })
