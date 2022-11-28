@@ -44,6 +44,19 @@ async function run(){
             const products = await productsCollection.find(query).toArray()
             res.send(products)
         })
+        app.get('/allproducts', async(req, res)=> {
+            
+            const reported = req.query.reported
+            // console.log(reported);
+            
+            let query = {}
+            if(reported){
+                query = {reported : "true"}
+            }
+            
+            const products = await productsCollection.find(query).toArray()
+            res.send(products)
+        })
         app.get('/user', async(req, res)=> {
             const email = req.query.email
             // console.log(email);
@@ -97,6 +110,20 @@ async function run(){
             const updatedDoc = {
                         $set: {
                             role: 'admin'
+                        }
+                    }
+                    const result = await usersCollection.updateOne(filter, updatedDoc, options);
+                    // console.log(result);
+                    res.send(result);
+        })
+        app.put('/users/verify/:id', async(req, res)=>{
+            const id = req.params.id
+            const filter = {_id: ObjectId(id)}
+            // console.log(filter);
+            const options = { upsert: true}
+            const updatedDoc = {
+                        $set: {
+                            verified: 'verified'
                         }
                     }
                     const result = await usersCollection.updateOne(filter, updatedDoc, options);
