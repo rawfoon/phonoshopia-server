@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express()
+const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port  = process.env.PORT || 5000
 
@@ -17,6 +18,25 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
+function verifyJWT(req, res, next){
+    const authHeader = req.headers.authorization
+    if(!authHeader){
+        return res.status(401).send({message: 'unauthorized access'})
+
+    }
+    const token = authHeader.split(' ')[1]
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECTET, function(err, decoded){
+        if(err){
+            return res.status(403).send({message: 'forbidden'})
+        }
+        req.decoded =decoded
+        next()
+    })
+}
+
+
+
 async function run(){
     try{
 
@@ -24,6 +44,12 @@ async function run(){
         const usersCollection = client.db('phonoShopia').collection('users')
         const productsCollection = client.db('phonoShopia').collection('products')
 
+        app.post('/jwt', (req, res)=>{
+            const user = req.body
+            // console.log(user);
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECTET, {expiresIn : '1h'} )
+            res.send({token})
+        })
 
         app.get('/categories', async(req, res)=> {
             const query = {}
@@ -80,8 +106,14 @@ async function run(){
             // console.log(users);
             res.send(users)
         })
-        app.get('/user/admin', async(req, res)=> {
-            const email = req.query.email
+        app.get('/user/admin', verifyJWT, async(req, res)=> {
+           
+            const decoded = req.decoded
+            // console.log('inside decoded',decoded);
+            const email = req.params.email
+            if(decoded.email !== email){
+                res.status(403).send('unauthorized access')
+            }
             // console.log(email);
             const query = {email}
             const user = await usersCollection.find(query).toArray()
@@ -202,6 +234,7 @@ async function run(){
             const id = req.params.id
             console.log(id);
             const query = {_id: ObjectId(id)}
+            console.log(query);
             const result = await productsCollection.deleteOne(query)
             res.send(result)
         })
